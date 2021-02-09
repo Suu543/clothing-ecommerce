@@ -1,11 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { auth } from "../../firebase";
+import { toast } from "react-toastify";
+import { useSelector } from 'react-redux';
 
-const Register = () => {
+
+const Register = ({ history }) => {
     const [email, setEmail] = useState("");
+    let { user } = useSelector(user => ({...user}));
 
-    const handleSubmit = () => {
+    useEffect(() => {
+        if (user && user.token) {
+            history.push('/');
+        }
+    }, [user])
 
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const config = {
+            url: process.env.REACT_APP_REGISTER_REDIRECT_URL,
+            handleCodeInApp: true
+        }
+
+        await auth.sendSignInLinkToEmail(email, config);
+        toast.success(`Email is sent to ${email}. Click the link to complete your registration.`);
+
+        // Save User Email in localStorage
+        window.localStorage.setItem('emailForRegistration', email);
+
+        // Clear state
+        setEmail("");
+    };
 
     const registerForm = () => {
         return (
@@ -14,11 +38,13 @@ const Register = () => {
                 type="email" 
                 className="form-control" 
                 value={email} 
-                onChange={e => setEmail(e.target.value)} 
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Your Email" 
                 autoFocus
                 />
 
-                <button type="submit" className="btn btn-raised">Register / {email}</button>
+                <br />
+                <button type="submit" className="btn btn-raised">Register</button>
             </form>
         )
     }
